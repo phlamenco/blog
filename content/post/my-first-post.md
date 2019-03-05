@@ -2,6 +2,8 @@
 title: "My First Post And A Guide To Build This Blog Site"
 date: 2019-03-05T11:40:34+08:00
 draft: false
+tags: ["博客", "hugo", "github"]
+categories: ["教程"]
 ---
 
 Hello Hugo!
