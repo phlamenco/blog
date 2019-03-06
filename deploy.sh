@@ -17,10 +17,15 @@ if [ $# -eq 1 ]
 fi
 git commit -m "$msg"
 
+# solve conflict
+git branch temporary-work
+git checkout master
+git merge -Xours temporary-work
+
 # Push source and build repos.
 git push origin master
 
 # Come Back up to the Project Root
 cd ..
 
-git submodule update
+git submodule update --init

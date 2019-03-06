@@ -37,4 +37,10 @@ hugo有很多漂亮的主题，我选取了这一款[hugo-theme-even](https://gi
 
 hugo提供渲染markdown和html的能力（好像也支持两种语法同时在同一个文件里使用），如果是简单的写作，我倾向于使用markdown，这里有一个简单的[语法介绍](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)。
 
+## 四 后记
+
+使用git submodule能很方便的同时管理自己编写的内容文件和网页静态文件，通过deploy脚本，更能一键发布用户的新增内容。但是当用户的工作环境为分布式的时候，情况稍微有点复杂。
+
+在分布式的使用情景下，conflict不可避免，如何解决这些conflict需要更深入的git方面的知识，幸运的是网上相关解决方案也有很多，比如stackoverflow上的这个[问题的答案](https://stackoverflow.com/questions/24743769/git-resolve-conflict-using-ours-theirs-for-all-files)可以用来参考
+
 希望本文能对大家有用，enjoy!
