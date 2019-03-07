@@ -25,6 +25,8 @@ git merge -Xours temporary-work
 # Push source and build repos.
 git push origin master
 
+git branch -d temporary-work
+
 # Come Back up to the Project Root
 cd ..
 
