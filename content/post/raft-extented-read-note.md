@@ -59,7 +59,7 @@ raft把一致性的问题划分成三个子问题：
     
     这些结论为raft一致性算法的正确性证明提供了基础。因此raft设计了算法来获取这些结论。
 
-***[Q]什么是term，index和log entry?***
+***[Q]什么是term?***
 
 raft系统里，每个server都有自己的角色和状态，这种角色和状态的转移图如下：
 
@@ -67,7 +67,34 @@ raft系统里，每个server都有自己的角色和状态，这种角色和状�
 
 server的角色和状态在一定条件下会发生变化，比如系统启动要选主，或者leader宕机等等，甚至raft算法自身让server的角色处于不停的变动之中。
 
-raft为了描述这种带有时序属性的变动，设计了一种逻辑时钟的概念。
+raft为了描述这种带有时序属性的变动，设计了一种逻辑时钟的概念，如下图：
+
+{{< rawhtml >}}<img src="/post/img/raft_term.png" alt="raft_term" width="340"/>{{< /rawhtml >}}
+
+raft把时间分成term，由连续的整形来表示，term主要用来同步servers之间的时序，比如一个server接收到一个比自己当前term值要大的term时，自己需要更新term为更大的那个值，如果一个candidate或者leader发现了其他更大的term值，那么它不仅仅要更新term值，而且自身需要切换到称为follower的状态。反过来，如果server接收到一个带有比自己小的term的query，则应该拒绝该query。
+
+所以每次选主时，都会产生一个最大的term出来。
+
+***[Q]什么是log entry和log index?***
+
+log entry是log里的一条记录，如下所示：
+
+{{< rawhtml >}}<img src="/post/img/log_entry.png" alt="log_entry" width="340"/>{{< /rawhtml >}}
+
+log index就是某条log entry的位置。
+
+### 2.1 leader election
+
+raft使用一种心跳的方式来出发选主的进行。每一个server都可能实现角色的变换，通过心跳，server之间能够知道当前集群的状态，比如是否已经有leader选出来，或者自己是否可以称为candidate来竞选leader，以及完成投票。
+
+但是，如果只有心跳，有可能会导致总有两个candidate获得的票数一样多，从而集群无法确定leader。raft把心跳和随机选主超时机制（ randomized election timeouts）相结合，一定程度上解决了这个问题（reference 2有更直观上的认识）。为什么说一定程度？是因为raft的这种做法也不能完全避免前面说的那种情况的发生，不过确实降低了该情况发生的概率，同时在工程上这种方式实现简单，易于理解，兼顾了理论算法的设计和理解以及工程实现。
+
+### 2.2 log replication
+
+raft中，所有的log的变动都必须由leader来主导，这样设计也是为了让算法显得更容易理解。leader首先创建一个log entry，然后发送到各个其他server上，在大部分server成功复制了log后，leader便commit这个entry。commit的意思是把log entry应用于state machine计算出结果出来。这个过程是通过一个rpc接口来完成。log的commit是严格按照log index的顺序来的，如果某个index的log entry已经commit了，那么该leader上，在它之前的log entry也一定是commit过的。如果在log entry被commit之后有一部分server宕机了或者网络出现故障了，leader仍然会不停地发送rpc请求，要求这些server复制log。
+
++ 如果在复制log还没有commit之前，leader宕机了的话，在新的leader选举后这些已经复制的log有可能会被覆盖，在客户端看来这次query返回失败。这种覆盖操作也需要leader来主导进行，比如新的leader产生后，会不停地发送带了nextIndex字段的rpc给其他server，其他server检查自己当前的nextIndex是否和接收到的相符，如果相符，那表示状态是同步的，如果不相符则返回失败，leader便会继续发送nextIndex-1的字段，如此不断重复直到找到相同的nextIndex值，然后以该nextIndex为基准进行正常的log replicate操作，如此重新同步整个集群。
++ 如果不同步的log数据量太大怎么办？
 
 ## reference
 1. [raft-extended](http://nil.csail.mit.edu/6.824/2017/papers/raft-extended.pdf)

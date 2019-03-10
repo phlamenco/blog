@@ -35,7 +35,7 @@ Hugo是最近看别的博客时发现的一个工具，粗略的看了下介绍�
 
 hugo有很多漂亮的主题，我选取了这一款[hugo-theme-even](https://github.com/olOwOlo/hugo-theme-even), 在使用这个主题时注意要查看其安装文档，并对配置文件做下适配。
 
-hugo提供渲染markdown和html的能力（好像也支持两种语法同时在同一个文件里使用），如果是简单的写作，我倾向于使用markdown，这里有一个简单的[语法介绍](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)。
+hugo提供渲染markdown和html的能力（也支持两种语法同时在同一个文件里使用），如果是简单的写作，我倾向于使用markdown，这里有一个简单的[语法介绍](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)。
 
 ## 四 后记
 
