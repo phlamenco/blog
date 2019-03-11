@@ -19,8 +19,10 @@ git commit -m "$msg"
 
 # solve conflict
 git branch temporary-work
+git checkout temporary-work
+git merge -s ours master
 git checkout master
-git merge -Xours temporary-work
+git merge temporary-work
 
 # Push source and build repos.
 git push origin master
