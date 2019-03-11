@@ -1,7 +1,7 @@
 ---
 title: "Raft Extented Read Note"
 date: 2019-03-08T16:01:02+08:00
-draft: true
+draft: false
 tags: ["raft", "paper", "read-note"]
 categories: ["paper"]
 ---
@@ -87,7 +87,7 @@ log index就是某条log entry的位置。
 
 raft使用一种心跳的方式来出发选主的进行。每一个server都可能实现角色的变换，通过心跳，server之间能够知道当前集群的状态，比如是否已经有leader选出来，或者自己是否可以称为candidate来竞选leader，以及完成投票。
 
-但是，如果只有心跳，有可能会导致总有两个candidate获得的票数一样多，从而集群无法确定leader。raft把心跳和随机选主超时机制（ randomized election timeouts）相结合，一定程度上解决了这个问题（reference 2有更直观上的认识）。为什么说一定程度？是因为raft的这种做法也不能完全避免前面说的那种情况的发生，不过确实降低了该情况发生的概率，同时在工程上这种方式实现简单，易于理解，兼顾了理论算法的设计和理解以及工程实现。
+但是，如果只有心跳，有可能会导致总有两个candidate获得的票数一样多，从而集群无法确定leader。raft把心跳和随机选主超时机制（randomized election timeouts）相结合，一定程度上解决了这个问题（reference 2有更直观上的认识）。为什么说一定程度？是因为raft的这种做法也不能完全避免前面说的那种情况的发生，不过确实降低了该情况发生的概率，同时在工程上这种方式实现简单，易于理解，兼顾了理论算法的设计和理解以及工程实现。
 
 ### 2.2 log replication
 
@@ -111,6 +111,37 @@ log compaction违反了之前说过的
 
 这一原则。但是这里这样做是可以的，因为在生成快照之前，一致性已经达成，它并不影响一致性，不会导致冲突，同时数据仍然是由leader传输到follower。
 
+快照何时生成以及如何生成这两个过程有可能会对系统性能造成影响。快照如果生成过于频繁，就很浪费带宽和存储容量，如果频率很低，则log entry可能会积累太多导致存储空间不够。raft应对的一种策略是设置一个log个数的阈值，超过这个阈值时触发快照的生成。而在写快照时，raft使用copy-on-write的方法来尽量减少性能影响。
+
+### 2.4 cluster configuration
+
+当集群需要新增或删减servers，raft集群支持动态更新集群配置，也就是说在更改配置时，集群仍然有提供对外服务的能力。raft结合上面设计的一致性算法，发明了名为joint consensus的配置更新策略。该策略主要解决了三个问题：
+
++ 新增机器同步log可能需要很长时间，这段时间它不能commit新的log entry,可能会对可用性造成影响。raft通过将新增机器排除在可以投票的角色之外来解决这个问题。
++ leader可能一直使用老的配置管理集群，这种情况下，在joint consensus的策略下，leader会自动降级为follower迫使选主重新进行，从而使新leader切换使用新配置。
++ 删掉的server因为没有收到leader的心跳包，会转变成为candidate从而发起选主请求，这会导致当前的leader降级为follower并重新触发选主流程，这一过程可能会循环重复进行，导致集群可用性下降。raft对选主过程进行进一步的限制（在最小选主超时时间内接收到投票请求时忽略该请求），来保证前面的情况不会发生，而且也不会影响到正常的选主流程。
+
+## 3. 客户端交互
+
+客户端随机连接集群中的一台server，如果这台server不是leader，则请求会被拒绝，同时会提供leader地址给客户端，客户端再对leader发起请求。如果leader宕机了，客户端的请求则会超时，此时客户端需要重试。
+
+raft的目标就是要实现一个对client来说属于linearizable semantics的分布式系统(我的理解linearizable semantics是一种并行编程下，原子操作的按时序分解的理解方式，毕竟并行环境下，原子操作也是按先后顺序来实现)。但是一个请求在raft里可能会被commit两次，比如：请求来了后，leader已经commit了log entry但是宕机了，client会重试这个请求，新的leader将会重复执行一次这个请求。为了解决这个问题，client请求的时候需要带上一个唯一的序列号，leader的状态机记录该序列号，如果发现序列号已经执行过了，则立刻返回而不会重复执行。
+
+对于client的只读请求，raft需要保证返回的数据是最新的，但是这需要额外的机制来保证，因为在上面的系统中leader返回给client的数据很有可能会被一个新的leader替代，而新的leader有可能包含了新的commit的数据。raft通过两个机制来保证client不会读取到旧数据：
+
+1. leader需要知道自己有哪些最新的log entry已经commit了，这个通过在这个server成为leader的时候在新term的开始commit一个no-op的log entry来实现。
+2. leader通过心跳和大部分server确认该请求的结果是否是最新数据，确认完成后才会返回结果给client。
+
+## 4. 关键配置
+
+因为raft使用了randomized election timeouts的方式来选主，这个超时时间需要小心配置才能实现稳定的raft一致性分布式集群。论文里建议如下公式：
+
+{{< rawhtml >}}<img src="/post/img/formula.png" alt="formula" width="340"/>{{< /rawhtml >}}
+
+按照经验来说，broadcastTime一般1-2ms，MTBF一般几个月一次，论文里建议electionTimeout设置为10ms到500ms。
+
 ## reference
 1. [raft-extended](http://nil.csail.mit.edu/6.824/2017/papers/raft-extended.pdf)
 2. [raft animation](http://thesecretlivesofdata.com/raft/)
+3. [copy-on-write](https://en.wikipedia.org/wiki/Copy-on-write)
+4. [linearizable semantics](https://en.wikipedia.org/wiki/Linearizability)
