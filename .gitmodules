@@ -5,3 +5,4 @@
 	path = public
 	url = https://github.com/phlamenco/phlamenco.github.io.git
 	branch = master
+	ignore = all
