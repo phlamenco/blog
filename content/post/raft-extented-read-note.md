@@ -2,7 +2,7 @@
 title: "Raft Extented Read Note"
 date: 2019-03-08T16:01:02+08:00
 draft: false
-tags: ["raft", "paper", "read-note"]
+tags: ["raft", "paper", "read-note", "分布式"]
 categories: ["paper"]
 ---
 

@@ -2,6 +2,8 @@
 title: "Zookeeper Study"
 date: 2019-03-11T21:24:28+08:00
 draft: false
+tags: ["分布式"]
+categories: ["教程"]
 ---
 
 本文用于翻译MIT分布式教学的zookeeper-case-study lec。
