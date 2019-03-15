@@ -48,5 +48,6 @@ categories: ["paper"]
 
 ## reference
 
-1. [AVL树](https://baike.baidu.com/item/AVL%E6%A0%91/10986648?fr=aladdin)
-2. [AVL的c实现](https://github.com/willemt/array-avl-tree)
+1. [in memory url compression](https://pdfs.semanticscholar.org/9bf1/007a376705f312ba37e4ea75cc56196d0361.pdf)
+2. [AVL树](https://baike.baidu.com/item/AVL%E6%A0%91/10986648?fr=aladdin)
+3. [AVL的c实现](https://github.com/willemt/array-avl-tree)
