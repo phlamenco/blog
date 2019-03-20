@@ -261,3 +261,4 @@ return 0;
 1. [in memory url compression](https://pdfs.semanticscholar.org/9bf1/007a376705f312ba37e4ea75cc56196d0361.pdf)
 2. [AVL树](https://www.geeksforgeeks.org/avl-tree-set-1-insertion/)
 3. [AVL的c实现](https://github.com/willemt/array-avl-tree)
+4. [论文的c++实现](https://github.com/phlamenco/url_compress)
