@@ -22,7 +22,7 @@ git branch temporary-work
 git checkout temporary-work
 git merge -s ours master
 git checkout master
-git merge temporary-work
+git merge --no-edit temporary-work
 
 # Push source and build repos.
 git push origin master
