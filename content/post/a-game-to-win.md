@@ -1,7 +1,7 @@
 ---
 title: "A Game To Win"
 date: 2019-03-25T09:20:11+08:00
-draft: true
+draft: false
 tags: ["游戏", "期望"]
 categories: ["概率论"]
 ---
@@ -73,11 +73,66 @@ P(z) = P(b - a)
 
 E(Z) = E(B-A) = E(B) - E(A) = 1/6 其差值的期望为 1/6 ，为正值。
 
-但仔细查看问题，发现我们求解的目标应该是E(Z>0)，也就是目标的所有数据集合应该是所有z>0或者z=0或者z<0的情况，而不是z的不同取值的情况。
+但仔细查看问题，发现我们求解的目标应该是E(Z>0)，也就是目标的所有数据集合应该是所有z>0或者z=0或者z<0的情况（类似边缘分布），而不是z的单个不同取值的情况。
 
 ## 测试
 
-根据大数定律（事件发生的理论期望值可以通过足够多次数的重试求得的统计值来逼近），这里来写一个程序验证一下。
+根据大数定律（事件发生的理论期望值可以通过足够多次数的重试求得的平均值来逼近），这里来写一个程序验证一下。以骰子A和B为例，假设A点数比B点数大时得分为1，其他情况得分为0，这个得分事件记为X，那么得分的期望是
+
+E(X) = 1 * P(A > B) + 0 * P(A ≤ B)
+
+所以P(A > B) = E(X)
+
+代码如下：
+
+```
+
+# /usr/bin/python
+
+import random
+import sys
+
+dice_a = [3, 3, 3, 3, 3, 3]
+dice_b = [6, 5, 2, 2, 2, 2]
+
+def toggle_dice(dice):
+    return dice[random.randint(0, len(dice) - 1)]
+
+def round_one():
+    res_a = toggle_dice(dice_a)
+    res_b = toggle_dice(dice_b)
+    return 1 if (res_a > res_b) else 0
+
+def repeate_toggle(count):
+    total_count = float(count)
+    win_count = 0
+    while count > 0 :
+        win_count += round_one()
+        count -= 1
+    return win_count / total_count
+
+if __name__ == '__main__':
+    print repeate_toggle(int(sys.argv[1]))
+
+
+```
+
+执行结果如下：
+
+```
+
+$ python get_expectation.py 10000
+0.6613
+$ python get_expectation.py 100000
+0.66717
+$ python get_expectation.py 1000000
+0.666349
+$ python get_expectation.py 10000000
+0.666584
+
+```
+
+可以看到随着重复的次数的增多，期望逐渐趋向于 2/3 ，和之前的理论值一致。
 
 ## 总结
 
