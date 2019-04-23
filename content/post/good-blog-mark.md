@@ -10,3 +10,5 @@ categories: ["阅读"]
 ***
 
 1. [codedump](https://www.codedump.info/) 后台相关，源码阅读
+2. [张吉的博客](http://shzhangji.com/cnblogs/) 大数据
+3. [subetter](https://subetter.com/) 数据结构与算法
