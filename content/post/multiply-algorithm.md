@@ -9,7 +9,7 @@ tags: ["algorithm"]
 
 下图是传统乘法和Karatsuba’s method乘法的例子：
 
-{{< rawhtml >}}<img src="/post/img/KratsubaMethod.jpg" alt="AVL tree example" width="340"/>{{< /rawhtml >}}
+{{< rawhtml >}}<img src="/post/img/KratsubaMethod.jpg" alt="KratsubaMethod" width="340"/>{{< /rawhtml >}}
 
 例子中的算法的时间复杂度就从n^2减少到了2n。
 
